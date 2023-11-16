@@ -1,0 +1,639 @@
+% =============== package to use and general setting===================
+\documentclass[11pt,letterpaper]{article}
+\usepackage[backend=biber]{biblatex}
+\usepackage[margin=0.5 in]{geometry}
+\usepackage{setspace}
+
+\onehalfspacing{}
+\setlength\parindent{0pt}
+\setlength\parskip{10pt}
+
+\usepackage{url, amsfonts, amssymb, amsmath, color,
+            enumitem, float, graphicx, subfigure, float, tikz, pgfplots}
+
+\usepackage[skins]{tcolorbox}
+\pgfplotsset{compat=1.18}
+\mathchardef\mhyphen="2D
+
+% ========= packages for insert programming code ======================
+\usepackage{listings}
+\usepackage{xcolor}
+
+\definecolor{codegreen}{rgb}{0,0.6,0}
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{codepurple}{rgb}{0.58,0,0.82}
+\definecolor{backcolour}{rgb}{0.95,0.95,0.92}
+
+\lstdefinestyle{mystyle}{
+    backgroundcolor=\color{backcolour},
+    commentstyle=\color{codegreen},
+    keywordstyle=\color{magenta},
+    numberstyle=\tiny\color{codegray},
+    stringstyle=\color{codepurple},
+    basicstyle=\ttfamily\footnotesize,
+    breakatwhitespace=false,
+    breaklines=true,
+    captionpos=b,
+    keepspaces=true,
+    numbers=left,
+    numbersep=5pt,
+    showspaces=false,
+    showstringspaces=false,
+    showtabs=false,
+    tabsize=2
+}
+
+\lstset{style=mystyle}
+% ===================== title =========================================
+
+
+\begin{document}
+\begin{center} \Large
+    \textbf{Assignment 2}
+\end{center}
+\begin{center}A02394870 \\ Yi-Cheng, Chen \end{center}
+
+% ===================== Question 1 ====================================
+\begin{enumerate}
+    \item \textbf{Velocity fields and outer units}
+          \begin{enumerate}
+              \item The plots as following:
+                    \begin{figure}[H]
+                        \centering
+                        \subfigure[name1]{
+                            \label{Fig.sub.1}
+                            \includegraphics[width=0.8\textwidth]{1a_1.pdf}}
+                        \subfigure[name2]{
+                            \label{Fig.sub.2}
+                            \includegraphics[width=0.8\textwidth]{1a_2.pdf}}
+                        \subfigure[name2]{
+                            \label{Fig.sub.3}
+                            \includegraphics[width=0.8\textwidth]{1a_3.pdf}}
+                        \caption{$u_1^{\prime}$ and $u_2^{\prime}$ contour}
+                        \label{Fig.main}
+                    \end{figure}
+              \item The free-stream velocity is the velocity from most outer layer in y direction.
+                    To avoid the measurement error, I took the last 10 layar in y direction and average them both spatial and temporal.
+                    For boundary-layer thickness $\delta$, just find where $\overline{u}(\delta) = 0.99 U_{\infty}$.
+                    For displacement thickness $\delta^*$ equation as follows
+                    \begin{equation}
+                        \delta^* = \int_{0}^{\infty} (1 - \frac{u}{u_\infty})dy
+                    \end{equation}
+                    \begin{equation}
+                        \theta = \int_{0}^{\infty} \frac{u}{u_\infty} (1 - \frac{u}{u_\infty})dy
+                    \end{equation}
+                    \begin{equation}
+                        TI = \frac{\sqrt[]{ \langle \overline{u^\prime} \rangle^2 + \langle \overline{v^\prime} \rangle}}{U_\infty}
+                    \end{equation}
+              \item The plot as follows
+                    \begin{figure}[H]
+                        \centering
+                        \includegraphics[width=0.7\textwidth]{1c.pdf}
+                        \caption{title}
+                        \label{1c}
+                    \end{figure}
+              \item this is 1d
+              \item this is 1e
+                    \begin{figure}[H]
+                        \centering
+                        \includegraphics[width=0.7\textwidth]{1e.pdf}
+                        \caption{title}
+                        \label{1e}
+                    \end{figure}
+          \end{enumerate}
+    \item \textbf{Friction velocity}
+    \item \textbf{Wall-normal profiless}
+    \item \textbf{Uniform momentum zones (UMZs)}
+    \item \textbf{Quadrant analysis}
+\end{enumerate}
+
+
+
+
+% ===================== Python Code ===================================
+\section*{\centering{Appendix A: Python code for Question 1 }}
+\begin{lstlisting}[language=Python, caption=Qusetion 1 Python code]
+import numpy as np
+import scipy
+import matplotlib.pyplot as plt
+import matplotlib as mpl
+
+# global setting
+L = 1
+c = 1
+
+Peclet = 20
+n = 4
+plt.rcParams['figure.figsize'] = (8, 8)
+mpl.rcParams['text.usetex'] = True
+
+
+def get_analytic_sol(Pe, n):
+    # ================ get exact solutio eq(30) =======================
+    h = L/n
+    unknow = n - 1
+    a = (c*L) / Pe
+    u_exact = np.zeros((unknow))
+    x = [(i+1) * h for i in range(unknow)]
+
+    for i in range(0, n-1):
+        eta = x[i] /L
+        # print("x = ", x[i])
+        u_exact[i] = (L/c) * (eta - (np.exp(Pe * (eta - 1)) - np.exp(- Pe)) / (1 - np.exp(- Pe)))
+    return u_exact
+
+def get_discrete_analy_sol(Pe, n):
+    # ================ get discrete solution eq(33) ===================
+    h = L/n
+    a = (c*L) / Pe
+    unknow = n - 1
+
+    u_exact = np.zeros((unknow))
+    x = [(i+1) * h for i in range(unknow)]
+    Pe_g = c * h / a
+    gamma = (2 + Pe_g) / (2 - Pe_g)
+    print("n = ", n, ", Pe_g = ", Pe_g)
+
+    for i in range(0, n-1):
+        u_exact[i] = L/c * ((x[i] / L) - (1 - gamma**i) / (1 - gamma**n))
+    return u_exact, Pe_g
+
+def get_H(Pe, n):
+    # ================ get discrete solution eq(32) ===================
+    unknow = n - 1
+    a = (c*L) / Pe
+    h = L/n
+    # ================ create Diffusion_matrix ========================
+    u_spd1 = np.stack((np.ones(unknow), -2 * np.ones(unknow), np.ones(unknow)))
+    diags = np.array([1, 0, -1])
+    A = (-1/Pe) * scipy.sparse.spdiags(u_spd1, diags, unknow, unknow).toarray() / h**2
+
+    # ================ create Advection_matrix ========================
+    u_spd2 = np.stack((np.ones(unknow), 0 * np.ones(unknow), -1* np.ones(unknow)))
+    diags = np.array([1, 0, -1])
+    C = scipy.sparse.spdiags(u_spd2, diags, unknow, unknow).toarray() / (2*h)
+
+    H = A + C # Advection-Diffusion operator
+    return H
+
+
+# ============ Plot solution of u =====================================
+Peclet = [1, 10, 100, 1000]
+n = [4, 8, 16, 32, 64]
+markers = ['s', 'v', '.', 'x', '+' ]
+
+ax = plt.subplot()
+linewide = 1
+
+for i in range(4): # 4 Peclet
+    ax = plt.subplot()
+    for j in range(5): # 5 n
+        # x position
+
+
+        # eq32
+
+        pe = float(Peclet[i])
+        H = get_H(Peclet[i], n[j])
+        B = np.ones(n[j] - 1)
+        u_solution = np.linalg.solve(H, B)
+        xb1 = [i * L/n[j] for i in range(n[j] + 1)]
+        y  = np.concatenate((np.array([0]), u_solution, np.array([0])))
+        if n[j] > 60:
+            ax.plot(xb1, y, ls='None', label="eq (31), n = " + str(n[j]), c='r', marker=markers[j] , lw = linewide)
+        else:
+            ax.plot(xb1, y, ls='-.', label="eq (31), n = " + str(n[j]), c='r', marker=markers[j] , lw = linewide)
+
+    for j in range(5): # 5 n
+        # eq31
+        discr_sol, peg = get_discrete_analy_sol(Peclet[i], n[j])
+        xb2 = [i * L/n[j] for i in range(n[j] + 1)]
+        y_discr  = np.concatenate((np.array([0]), discr_sol, np.array([0])))
+        if n[j] > 60:
+            ax.plot(xb2, y_discr, ls='None' , label="eq (32), n = " + str(n[j]) + r", $Pe_g = $" + str(peg), c='tab:blue', marker=markers[j], lw = linewide)
+        else:
+            ax.plot(xb2, y_discr, ls='-' , label="eq (32), n = " + str(n[j]) + r", $Pe_g = $" + str(peg), c='tab:blue', marker=markers[j], lw = linewide)
+
+    # eq31
+    analy_sol = get_analytic_sol(Peclet[i], 1024)
+    xb = [i * L/1024 for i in range(1024 + 1)]
+    y_analy = np.concatenate((np.array([0]), analy_sol[:], np.array([0])))
+    ax.plot(xb, y_analy , label="eq (30)", ls='-', c='black', lw = linewide)
+
+    ax.set_xlabel("L")
+    ax.set_ylabel("u")
+    if i > 1:
+        ax.set_ylim(0, 1.5)
+    ax.legend(loc='upper left', fontsize=15)
+    plt.savefig('Pe_' + str(Peclet[i]) +'.png', bbox_inches="tight")
+    plt.show()
+
+
+# ============ Plot || u - u~ || / ||u~|| =============================
+
+n_list = [2 ** i for i in range(1, 16)]
+
+error_pe_1 = np.zeros(len(n_list))
+error_pe_10 = np.zeros(len(n_list))
+error_pe_100 = np.zeros(len(n_list))
+error_pe_1000 = np.zeros(len(n_list))
+
+Peclet = 1
+for i in range(len(n_list)):
+    analy_sol = get_analytic_sol(Peclet, n_list[i])
+    H = get_H(Peclet, n_list[i])
+    B = np.ones(n_list[i] - 1)
+    u_solution = np.linalg.solve(H, B)
+    error_pe_1[i] = np.linalg.norm((u_solution - analy_sol), ord=np.inf) / np.linalg.norm(analy_sol, ord=np.inf)
+
+Peclet = 10
+for i in range(len(n_list)):
+    analy_sol = get_analytic_sol(Peclet, n_list[i])
+    H = get_H(Peclet, n_list[i])
+    B = np.ones(n_list[i] - 1)
+    u_solution = np.linalg.solve(H, B)
+    error_pe_10[i] = np.linalg.norm((u_solution - analy_sol), ord=np.inf) / np.linalg.norm(analy_sol, ord=np.inf)
+
+Peclet = 100
+for i in range(len(n_list)):
+    analy_sol = get_analytic_sol(Peclet, n_list[i])
+    H = get_H(Peclet, n_list[i])
+    B = np.ones(n_list[i] - 1)
+    u_solution = np.linalg.solve(H, B)
+    error_pe_100[i] = np.linalg.norm((u_solution - analy_sol), ord=np.inf) / np.linalg.norm(analy_sol, ord=np.inf)
+
+Peclet = 1000
+for i in range(len(n_list)):
+    analy_sol = get_analytic_sol(Peclet, n_list[i])
+    H = get_H(Peclet, n_list[i])
+    B = np.ones(n_list[i] - 1)
+    u_solution = np.linalg.solve(H, B)
+    error_pe_1000[i] = np.linalg.norm((u_solution - analy_sol), ord=np.inf) / np.linalg.norm(analy_sol, ord=np.inf)
+
+ax = plt.subplot()
+ax.plot(n_list , error_pe_1,       label=r"$Pe = 1$",      marker='x', lw = linewide)
+ax.plot(n_list , error_pe_10,      label=r"$Pe = 10$",     marker='.', lw = linewide)
+ax.plot(n_list , error_pe_100,     label=r"$Pe = 100$",    marker='s', lw = linewide)
+ax.plot(n_list , error_pe_1000,    label=r"$Pe = 1000$",   marker='v', lw = linewide)
+ax.plot([2, 25000], [10**(-8), 10**(-8)],  label=r"error = $10^{-8}$", lw = linewide, c='black', ls='-.')
+
+# ========================== trendline ================================
+
+def curve(x, a, b):
+    return a * x ** b
+
+curve_y = [curve(n_list[i], 2, -2) for i in range(0, len(n_list))]
+ax.plot(n_list, curve_y, ls=":", label="trendline")
+
+# =====================================================================
+
+ax.set_yscale('log')
+ax.set_xscale('log')
+
+ax.set_ylabel(r"$||\underline{u} - \underline{\tilde{u}} ||_\infty / ||\underline{\tilde{u}}||  $")
+ax.set_xlabel("n")
+ax.legend(fontsize=15)
+plt.savefig('Pe_error.png', bbox_inches="tight")
+plt.show()
+\end{lstlisting}
+
+% ========== Appendix B ================================================
+\newpage
+\section*{\centering{Appendix B: Python code for Question 2 }}
+\begin{lstlisting}[language=Python, caption=Question 2 Python code]
+import numpy as np
+import scipy as sp
+import matplotlib.pyplot as plt
+
+# ==================== define zwgll ===================================
+def zwgll(p):
+    n = p + 1
+
+    z = np.zeros(n)
+    w = np.zeros(n)
+
+    z[0] = -1
+    z[-1] = 1
+
+    if p > 1:
+        if p == 2:
+            z[1] = 0
+        else:
+            M = np.zeros((p - 1, p - 1))
+            for i in range(p - 2):
+                M[i, i + 1] = (1/2) * np.sqrt(((i+1) * (i + 3)) / (((i+1) + 1/2) * ((i+1)+ 3/2)))
+                M[i + 1, i] = M[i, i + 1]
+
+            D,V = np.linalg.eig(M)
+            z[1:p] = np.sort(D)
+
+    w[0] = 2 / (p * n)
+    w[-1] = w[0]
+
+    for i in range(1, p):
+        x = z[i]
+        z0 = 1
+        z1 = x
+
+        for j in range(0, p - 1):
+            z2 = x * z1 * (2 * (j + 1) + 1) / ((j + 1)+ 1) - z0 * (j + 1) / ((j + 1) + 1)
+            z0 = z1
+            z1 = z2
+
+        w[i] = 2 / (p * n * z2**2)
+    return z, w
+
+# ==================== define deriv_mat ===============================
+def deriv_mat(x):
+    ni = len(x)
+    a = np.ones(ni)
+
+    for i in range(ni):
+        for j in range(i):
+            a[i] *= (x[i] - x[j])
+        for j in range(i + 1, ni):
+            a[i] *= (x[i] - x[j])
+
+    a = 1 / a  # These are the alpha_i's
+
+    d = np.zeros((ni, ni))
+    for j in range(ni):
+        for i in range(ni):
+            d[i, j] = x[i] - x[j]
+        d[j, j] = 1
+
+    d = 1 / d
+    for i in range(ni):
+        d[i, i] = 0
+        d[i, i] = np.sum(d[i, :])
+
+    for j in range(ni):
+        for i in range(ni):
+            if i != j:
+                d[i, j] = a[j] / (a[i] * (x[i] - x[j]))
+    return d
+
+# ==================== define semhat ==================================
+def semhat(N):
+    z, w = zwgll(N);
+
+    Bh = np.diag(w)
+    Dh = deriv_mat(z)
+    Ah = np.dot(np.dot(Dh.T, Bh), Dh)
+    Ch = np.dot(Bh, Dh)
+    return Ah, Bh, Ch, Dh, z, w
+
+# =====================================================================
+# Over-sample for error checking
+N = 256
+M = 400
+L = np.pi
+
+d = 1
+d2 = d * d
+
+Ah, Bh, Ch, Dh, z, w = semhat(M)
+
+Ab = (2 / L) * Ah
+Bb = (L / 2) * Bh
+Ib = np.eye(M + 1)
+R = Ib[1:-1, :]
+A = R @ Ab @ R.T
+B = R @ Bb @ R.T
+H = d2 * A + B
+
+z = L * (1 + z) / 2
+w = L * w / 2
+xb = z
+fb = 1 + 0 * xb # a all 1 array
+us = R.T @ np.linalg.solve(H, R @ Bb @ fb) # solution of Legendre matrix Hx = R @ Bb @ fb
+
+# Initialize Fourier solution on GLL pts
+uf =  np.zeros(len(xb))
+em =  np.zeros(int(N/2))
+ef2 = np.zeros(int(N/2))
+nN =  np.zeros(int(N/2))
+
+for k in range(1, N + 1, 2):
+    k1 = k + 1
+    sk = np.sin(k * xb)
+    fk = 2 / (k * np.pi)
+    uk = 2 * fk / (1 + d2 * k * k)
+    uf = uf + uk * sk # solution of fourier
+    ef = uf - us # error of fourier
+    em[int(k1/2)-1]  = np.max(np.abs(ef))
+    ef2[int(k1/2)-1] = np.sqrt(ef @ Bb @ ef / np.pi)
+    nN[int(k1/2)-1]  = k
+    if k == 1:
+        uf1 = uf
+    if k == 3:
+        uf3 = uf
+    if k == 5:
+        uf5 = uf
+
+fig, ax = plt.subplots()
+ax.plot(xb, us, 'k-', linewidth=1.4, label = "Legendre")
+ax.plot(xb, uf1, 'r--', label = "Fourier k=1")
+ax.plot(xb, uf3, 'g--', label = "Fourier k=3")
+ax.plot(xb, uf5, 'b--', label = "Fourier k=5")
+ax.set_xlabel("x")
+ax.set_ylabel("u(x)")
+ax.legend()
+plt.savefig('2_1.pdf', bbox_inches="tight")
+plt.show()
+
+fig, ax = plt.subplots()
+ax.plot(nN, ef2,          'b-',  linewidth=1.4, label = "Legendre")
+ax.plot(nN, 0.3*nN**(-2), 'r--', label = r'$L_2$ error')
+ax.plot(nN, em,           'g--', label = r'$L_\infty$ error')
+
+ax.set_yscale('log')
+ax.set_xscale('log')
+
+ax.set_xlabel('N')
+ax.set_ylabel(r'Error: $L_2 \ and \ L_\infty$')
+ax.legend()
+plt.savefig('2_2.pdf', bbox_inches="tight")
+plt.show()
+
+    \end{lstlisting}
+
+% ========== Appendix c ================================================
+\newpage
+\section*{\centering{Appendix C: Python code for Question 2 (b)}}
+\begin{lstlisting}[language=Python, caption=Question 2 (b) Python code]
+# %%
+import numpy as np
+import scipy as sp
+import matplotlib.pyplot as plt
+
+# ==================== define zwgll ===================================
+def zwgll(p):
+    n = p + 1
+
+    z = np.zeros(n)
+    w = np.zeros(n)
+
+    z[0] = -1
+    z[-1] = 1
+
+    if p > 1:
+        if p == 2:
+            z[1] = 0
+        else:
+            M = np.zeros((p - 1, p - 1))
+            for i in range(p - 2):
+                M[i, i + 1] = (1/2) * np.sqrt(((i+1) * (i + 3)) / (((i+1) + 1/2) * ((i+1)+ 3/2)))
+                M[i + 1, i] = M[i, i + 1]
+
+            D,V = np.linalg.eig(M)
+            z[1:p] = np.sort(D)
+
+    w[0] = 2 / (p * n)
+    w[-1] = w[0]
+
+    for i in range(1, p):
+        x = z[i]
+        z0 = 1
+        z1 = x
+
+        for j in range(0, p - 1):
+            z2 = x * z1 * (2 * (j + 1) + 1) / ((j + 1)+ 1) - z0 * (j + 1) / ((j + 1) + 1)
+            z0 = z1
+            z1 = z2
+
+        w[i] = 2 / (p * n * z2**2)
+    return z, w
+
+
+# ==================== define deriv_mat ===============================
+def deriv_mat(x):
+    ni = len(x)
+    a = np.ones(ni)
+
+    for i in range(ni):
+        for j in range(i):
+            a[i] *= (x[i] - x[j])
+        for j in range(i + 1, ni):
+            a[i] *= (x[i] - x[j])
+
+    a = 1 / a  # These are the alpha_i's
+
+    d = np.zeros((ni, ni))
+    for j in range(ni):
+        for i in range(ni):
+            d[i, j] = x[i] - x[j]
+        d[j, j] = 1
+
+    d = 1 / d
+    for i in range(ni):
+        d[i, i] = 0
+        d[i, i] = np.sum(d[i, :])
+
+    for j in range(ni):
+        for i in range(ni):
+            if i != j:
+                d[i, j] = a[j] / (a[i] * (x[i] - x[j]))
+    return d
+
+# ==================== define semhat ==================================
+def semhat(N):
+    z, w = zwgll(N);
+
+    Bh = np.diag(w)
+    Dh = deriv_mat(z)
+    Ah = np.dot(np.dot(Dh.T, Bh), Dh)
+    Ch = np.dot(Bh, Dh)
+    return Ah, Bh, Ch, Dh, z, w
+
+# =====================================================================
+# Over-sample for error checking
+N = 256
+M = 400
+L = np.pi
+
+d = 1
+d2 = d * d
+
+Ah, Bh, Ch, Dh, z, w = semhat(M)
+
+
+# %%
+Ab = (2 / L) * Ah
+Bb = (L / 2) * Bh
+Ib = np.eye(M + 1)
+R = Ib[1:-1, :]
+A = R @ Ab @ R.T
+B = R @ Bb @ R.T
+H = d2 * A + B
+RT = R.T
+
+# Scale points and weights to [-L, L]
+# z = L * (1 + z) / 2
+z = L * z / 2
+w = L * w / 2
+
+# Set RHS for Legendre spectral soln
+xb = z
+fb = np.cos(xb)
+
+# solution of Legendre matrix Hx = R @ Bb @ fb
+us = R.T @ np.linalg.solve(H, R @ Bb @ fb)
+
+
+# Initialize Fourier solution on GLL pts
+uf =  np.zeros(len(xb))
+em =  np.zeros(int(N/2))
+ef2 = np.zeros(int(N/2))
+nN =  np.zeros(int(N/2))
+
+for k in range(1, N + 1, 2):
+    k1 = k + 1
+
+    # ===== in the end of my derivation, u is independent of k ========
+    # sk = np.sin(k * xb)
+    # fk = 2 / (k * np.pi)
+    # uk = 2 * fk / (1 + d2 * k * k)
+
+    uf = 0.5*np.cos(xb)                     # solution of fourier
+    ef = uf - us                            # error of fourier
+    em[int(k1/2)-1]  = np.max(np.abs(ef))
+    ef2[int(k1/2)-1] = np.sqrt(ef @ Bb @ ef / np.pi)
+    nN[int(k1/2)-1]  = k
+    if k == 1:
+        uf1 = uf
+    if k == 3:
+        uf3 = uf
+    if k == 5:
+        uf5 = uf
+
+fig, ax = plt.subplots()
+ax.plot(xb, us, 'k-', linewidth=1.4, label = "Legendre")
+ax.plot(xb, uf1, 'r--', label = "Fourier k=1")
+ax.plot(xb, uf3, 'g--', label = "Fourier k=3")
+ax.plot(xb, uf5, 'b--', label = "Fourier k=5")
+ax.set_xlabel("x")
+ax.set_ylabel("u(x)")
+ax.legend()
+plt.savefig('2_2_solution.pdf', bbox_inches="tight")
+plt.show()
+
+fig, ax = plt.subplots()
+ax.plot(nN, ef2,          'b-',  linewidth=1.4, label = "Legendre")
+ax.plot(nN, 0.3*nN**(-2), 'r--', label = r'$L_2$ error')
+ax.plot(nN, em,           'g--', label = r'$L_\infty$ error')
+
+ax.set_yscale('log')
+ax.set_xscale('log')
+
+ax.set_xlabel('N')
+ax.set_ylabel(r'Error: $L_2 \ and \ L_\infty$')
+ax.legend()
+plt.savefig('2_2_error.pdf', bbox_inches="tight")
+plt.show()
+
+    \end{lstlisting}
+
+\end{document}
+
+
